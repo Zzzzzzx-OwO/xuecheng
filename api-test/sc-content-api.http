@@ -7,3 +7,33 @@ Content-Type: application/json
   "courseName": "JAVA",
   "publishStatus": ""
 }
+
+###
+GET {{system_host}}/system/dictionary/all
+
+###
+GET {{content_host}}/content/course-category/tree-nodes
+
+###
+POST {{content_host}}/content/course
+Content-Type: application/json
+
+{
+  "mt": "1-1",
+  "st": "1-1-1",
+  "name": "",
+  "pic": "",
+  "teachmode": "200002",
+  "users": "",
+  "tags": "标签",
+  "grade": "204001",
+  "description": "介绍",
+  "objectives": "",
+  "charge": "201000",
+  "price": 10,
+  "originalPrice": 100,
+  "qq": "43232",
+  "wechat": "4324322",
+  "phone": "11111111111",
+  "validDays": 3333
+}
