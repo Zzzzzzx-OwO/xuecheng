@@ -12,7 +12,7 @@ Content-Type: application/json
 GET {{system_host}}/system/dictionary/all
 
 ###
-GET {{content_host}}/content/course-category/tree-nodes
+GET {{gateway_host}}/content/course-category/tree-nodes
 
 ###
 POST {{content_host}}/content/course
@@ -37,3 +37,4 @@ Content-Type: application/json
   "phone": "11111111111",
   "validDays": 3333
 }
+

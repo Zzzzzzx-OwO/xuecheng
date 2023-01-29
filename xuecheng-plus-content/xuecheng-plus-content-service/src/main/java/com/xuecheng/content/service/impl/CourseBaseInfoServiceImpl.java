@@ -2,6 +2,7 @@ package com.xuecheng.content.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.xuecheng.base.exception.XueChengPlusException;
 import com.xuecheng.base.model.PageParams;
 import com.xuecheng.base.model.PageResult;
 import com.xuecheng.content.mapper.CourseBaseMapper;
@@ -10,6 +11,7 @@ import com.xuecheng.content.mapper.CourseMarketMapper;
 
 import com.xuecheng.content.model.dto.AddCourseDto;
 import com.xuecheng.content.model.dto.CourseBaseInfoDto;
+import com.xuecheng.content.model.dto.EditCourseDto;
 import com.xuecheng.content.model.dto.QueryCourseParamsDto;
 import com.xuecheng.content.model.po.CourseBase;
 
@@ -46,6 +48,9 @@ public class CourseBaseInfoServiceImpl implements CourseBaseInfoService {
 
     @Autowired
     CourseCategoryMapper courseCategoryMapper;
+
+    @Autowired
+    CourseMarketServiceImpl courseMarketService;
 
 
     @Override
@@ -195,6 +200,75 @@ public class CourseBaseInfoServiceImpl implements CourseBaseInfoService {
 
 
         return courseBaseInfoDto;
+
+    }
+
+    @Override
+    public CourseBaseInfoDto updateCourseBase(Long companyId, EditCourseDto dto) {
+
+            //校验
+            //课程id
+            Long id = dto.getId();
+            CourseBase courseBase = courseBaseMapper.selectById(id);
+            if(courseBase==null){
+                XueChengPlusException.cast("课程不存在");
+            }
+
+            //校验本机构只能修改本机构的课程
+            if(!courseBase.getCompanyId().equals(companyId)){
+                XueChengPlusException.cast("本机构只能修改本机构的课程");
+            }
+
+            //封装基本信息的数据
+            BeanUtils.copyProperties(dto,courseBase);
+            courseBase.setChangeDate(LocalDateTime.now());
+
+            //更新课程基本信息
+            int i = courseBaseMapper.updateById(courseBase);
+
+            //封装营销信息的数据
+            CourseMarket courseMarket = new CourseMarket();
+            BeanUtils.copyProperties(dto,courseMarket);
+
+            //校验如果课程为收费，必须输入价格且大于0
+//        String charge = courseMarket.getCharge();
+//        if(charge.equals("201001")){
+//            if(courseMarket.getPrice()==null || courseMarket.getPrice().floatValue()<=0){
+////                throw new RuntimeException("课程为收费价格不能为空且必须大于0");
+//                XueChengPlusException.cast("课程为收费价格不能为空且必须大于0");
+//
+//            }
+//        }
+
+            //请求数据库
+            //对营销表有则更新，没有则添加
+//        boolean b = courseMarketService.saveOrUpdate(courseMarket);
+
+            saveCourseMarket(courseMarket);
+            //查询课程信息
+            CourseBaseInfoDto courseBaseInfo = this.getCourseBaseInfo(id);
+            return courseBaseInfo;
+
+    }
+    private int saveCourseMarket(CourseMarket courseMarket){
+
+
+        String charge = courseMarket.getCharge();
+        if(StringUtils.isBlank(charge)){
+            XueChengPlusException.cast("收费规则没有选择");
+        }
+        if(charge.equals("201001")){
+            if(courseMarket.getPrice()==null || courseMarket.getPrice().floatValue()<=0){
+//                throw new RuntimeException("课程为收费价格不能为空且必须大于0");
+                XueChengPlusException.cast("课程为收费价格不能为空且必须大于0");
+
+            }
+        }
+
+        //保存
+        boolean b = courseMarketService.saveOrUpdate(courseMarket);
+
+        return b?1:0;
 
     }
 
