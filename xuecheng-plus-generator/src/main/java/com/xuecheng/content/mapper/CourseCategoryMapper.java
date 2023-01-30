@@ -1,8 +1,8 @@
 package com.xuecheng.content.mapper;
 
+import com.xuecheng.content.model.dto.CourseCategoryTreeDto;
 import com.xuecheng.content.model.po.CourseCategory;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
-import com.xuecheng.model.dto.CourseCategoryTreeDto;
 
 import java.util.List;
 
