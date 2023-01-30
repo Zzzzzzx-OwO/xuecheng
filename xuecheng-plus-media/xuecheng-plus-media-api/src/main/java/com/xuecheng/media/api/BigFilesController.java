@@ -2,6 +2,7 @@ package com.xuecheng.media.api;
 
 
 import com.xuecheng.base.model.RestResponse;
+import com.xuecheng.media.model.dto.UploadFileParamsDto;
 import com.xuecheng.media.service.MediaFilesService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -41,6 +42,22 @@ public class BigFilesController {
                                     @RequestParam("fileMd5") String fileMd5,
                                     @RequestParam("chunk") int chunk) throws Exception {
         return mediaFilesService.uploadChunk(fileMd5,chunk,file.getBytes());
+
+    }
+
+
+    @ApiOperation(value = "合并文件")
+    @PostMapping("/upload/mergechunks")
+    public RestResponse mergechunks(@RequestParam("fileMd5") String fileMd5,
+                                    @RequestParam("fileName") String fileName,
+                                    @RequestParam("chunkTotal") int chunkTotal){
+        Long companyId = 1232141425L;
+
+        UploadFileParamsDto uploadFileParamsDto = new UploadFileParamsDto();
+        uploadFileParamsDto.setFilename(fileName);
+        uploadFileParamsDto.setFileType("001002");//视频
+        uploadFileParamsDto.setTags("课程视频");
+        return mediaFilesService.mergechunks(companyId,fileMd5,chunkTotal,uploadFileParamsDto);
 
     }
 }
