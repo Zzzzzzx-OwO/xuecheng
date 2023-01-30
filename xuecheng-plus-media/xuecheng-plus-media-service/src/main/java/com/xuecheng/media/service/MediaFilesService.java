@@ -1,6 +1,7 @@
 package com.xuecheng.media.service;
 
 import com.baomidou.mybatisplus.extension.service.IService;
+import com.xuecheng.base.model.RestResponse;
 import com.xuecheng.media.model.dto.UploadFileParamsDto;
 import com.xuecheng.media.model.dto.UploadFileResultDto;
 import com.xuecheng.media.model.po.MediaFiles;
@@ -17,4 +18,15 @@ public interface MediaFilesService extends IService<MediaFiles> {
 
     public UploadFileResultDto uploadFile(Long companyId, UploadFileParamsDto uploadFileParamsDto,byte[] bytes,String folder,String objectName);
 
+
+
+    public MediaFiles addMediaFilesToDb(Long companyId,String fileId,UploadFileParamsDto uploadFileParamsDto,String objectName,String bucket);
+
+    public RestResponse<Boolean> checkFile(String fileMd5);
+
+    public RestResponse<Boolean> checkChunk(String fileMd5, int chunkIndex);
+
+    public RestResponse uploadChunk(String fileMd5, int chunk, byte[] bytes);
+
+    public RestResponse mergechunks(Long companyId,String fileMd5,int chunkTotal,UploadFileParamsDto uploadFileParamsDto);
 }
