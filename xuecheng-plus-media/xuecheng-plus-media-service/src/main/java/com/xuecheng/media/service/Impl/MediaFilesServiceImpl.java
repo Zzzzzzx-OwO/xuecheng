@@ -5,9 +5,11 @@ import com.j256.simplemagic.ContentInfoUtil;
 import com.xuecheng.base.exception.XueChengPlusException;
 import com.xuecheng.base.model.RestResponse;
 import com.xuecheng.media.mapper.MediaFilesMapper;
+import com.xuecheng.media.mapper.MediaProcessMapper;
 import com.xuecheng.media.model.dto.UploadFileParamsDto;
 import com.xuecheng.media.model.dto.UploadFileResultDto;
 import com.xuecheng.media.model.po.MediaFiles;
+import com.xuecheng.media.model.po.MediaProcess;
 import com.xuecheng.media.service.MediaFilesService;
 import io.minio.GetObjectArgs;
 import io.minio.MinioClient;
@@ -49,11 +51,14 @@ public class MediaFilesServiceImpl extends ServiceImpl<MediaFilesMapper, MediaFi
     @Value("${minio.bucket.files}")
     private String bucket_files;
 
-    @Value("${minio.bucket.video}")
+    @Value("${minio.bucket.videofiles}")
     private String bucket_videofiles;
 
     @Autowired
     MediaFilesService currentProxy;
+
+    @Autowired
+    MediaProcessMapper mediaProcessMapper;
 
     @Override
     public UploadFileResultDto uploadFile(Long companyId, UploadFileParamsDto uploadFileParamsDto, byte[] bytes, String folder, String objectName) {
@@ -154,13 +159,43 @@ public class MediaFilesServiceImpl extends ServiceImpl<MediaFilesMapper, MediaFi
             mediaFiles.setCompanyId(companyId);
             mediaFiles.setBucket(bucket);
             mediaFiles.setFilePath(objectName);
-            mediaFiles.setUrl("/" + bucket_files + "/" + objectName);
+            String extension = null;
+            String filename = uploadFileParamsDto.getFilename();
+            if(StringUtils.isNotEmpty(filename) && filename.indexOf(".")>=0){
+                extension = filename.substring(filename.lastIndexOf("."));
+            }
+            //媒体类型
+            String mimeType = getMimeTypeByextension(extension);
+            //图片、mp4视频可以设置URL
+            if(mimeType.indexOf("image")>=0 || mimeType.indexOf("mp4")>=0){
+                mediaFiles.setUrl("/" + bucket + "/" + objectName);
+            }
             mediaFiles.setCreateDate(LocalDateTime.now());
             mediaFiles.setStatus("1");
             mediaFiles.setAuditStatus("002003");
             mediaFilesMapper.insert(mediaFiles);
+
+            if(mimeType.equals("video/x-msvideo")){
+
+                MediaProcess mediaProcess = new MediaProcess();
+                BeanUtils.copyProperties(mediaFiles,mediaProcess);
+                //设置一个状态
+                mediaProcess.setStatus("1");//未处理
+                mediaProcessMapper.insert(mediaProcess);
+            }
         }
         return mediaFiles;
+    }
+    private String getMimeTypeByextension(String extension){
+        //资源的媒体类型
+        String contentType = MediaType.APPLICATION_OCTET_STREAM_VALUE;//默认未知二进制流
+        if(StringUtils.isNotEmpty(extension)){
+            ContentInfo extensionMatch = ContentInfoUtil.findExtensionMatch(extension);
+            if (extensionMatch != null) {
+                contentType = extensionMatch.getMimeType();
+            }
+        }
+        return  contentType;
     }
 
     @Override
@@ -234,7 +269,7 @@ public class MediaFilesServiceImpl extends ServiceImpl<MediaFilesMapper, MediaFi
     }
 
 
-    private void addMediaFilesToMinIO(String filePath, String bucket, String objectName){
+    public void addMediaFilesToMinIO(String filePath, String bucket, String objectName){
         try {
             UploadObjectArgs uploadObjectArgs = UploadObjectArgs.builder()
                     .bucket(bucket)
@@ -379,4 +414,18 @@ public class MediaFilesServiceImpl extends ServiceImpl<MediaFilesMapper, MediaFi
         return null;
     }
 
+
+    @Override
+    public MediaFiles getFileById(String id) {
+        MediaFiles mediaFiles = mediaFilesMapper.selectById(id);
+        if(mediaFiles==null){
+            XueChengPlusException.cast("文件不存在");
+        }
+        String url = mediaFiles.getUrl();
+        if(StringUtils.isEmpty(url)){
+            XueChengPlusException.cast("文件还没有处理，请稍后预览");
+        }
+
+        return mediaFiles;
+    }
 }

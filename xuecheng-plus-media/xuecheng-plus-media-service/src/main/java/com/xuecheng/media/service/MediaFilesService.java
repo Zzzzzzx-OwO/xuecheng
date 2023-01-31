@@ -6,6 +6,8 @@ import com.xuecheng.media.model.dto.UploadFileParamsDto;
 import com.xuecheng.media.model.dto.UploadFileResultDto;
 import com.xuecheng.media.model.po.MediaFiles;
 
+import java.io.File;
+
 /**
  * <p>
  * 媒资信息 服务类
@@ -29,4 +31,10 @@ public interface MediaFilesService extends IService<MediaFiles> {
     public RestResponse uploadChunk(String fileMd5, int chunk, byte[] bytes);
 
     public RestResponse mergechunks(Long companyId,String fileMd5,int chunkTotal,UploadFileParamsDto uploadFileParamsDto);
+
+    public MediaFiles getFileById(String id);
+
+    public File downloadFileFromMinIO(File file, String bucket, String objectName);
+
+    public void addMediaFilesToMinIO(String filePath, String bucket, String objectName);
 }

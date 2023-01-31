@@ -2,8 +2,10 @@ package com.xuecheng.media.api;
 
 import com.alibaba.nacos.common.http.param.MediaType;
 import com.xuecheng.base.exception.XueChengPlusException;
+import com.xuecheng.base.model.RestResponse;
 import com.xuecheng.media.model.dto.UploadFileParamsDto;
 import com.xuecheng.media.model.dto.UploadFileResultDto;
+import com.xuecheng.media.model.po.MediaFiles;
 import com.xuecheng.media.service.MediaFilesService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -51,6 +53,17 @@ public class MediaFilesController {
             XueChengPlusException.cast("上传文件过程中出错");
         }
         return uploadFileResultDto;
+    }
+
+
+    @ApiOperation("预览文件")
+    @GetMapping("/preview/{mediaId}")
+    public RestResponse<String> getPlayUrlByMediaId(@PathVariable String mediaId){
+
+        //调用service查询文件的url
+
+        MediaFiles mediaFiles = mediaFilesService.getFileById(mediaId);
+        return RestResponse.success(mediaFiles.getUrl());
     }
 
 
