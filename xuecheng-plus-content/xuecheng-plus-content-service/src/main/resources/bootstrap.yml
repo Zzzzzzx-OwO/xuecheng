@@ -12,6 +12,10 @@ spring:
         group: xuecheng-plus-project
         file-extension: yaml
         refresh-enabled: true
+        shared-configs:
+          - data-id: feign-${spring.profiles.active}.yaml
+            group: xuecheng-plus-common
+            refresh: true
 
   profiles:
     active: dev
